@@ -24,7 +24,6 @@ jobs:
       - name: Run mixed poster (sheet-driven)
         env:
           GDRIVE_CREDENTIALS_JSON: ${{ secrets.GDRIVE_CREDENTIALS_JSON }}
-          SHEET_CREDENTIALS_JSON: ${{ secrets.SHEET_CREDENTIALS_JSON }}
           ACCOUNTS_SPREADSHEET_ID: ${{ secrets.ACCOUNTS_SPREADSHEET_ID }}
         run: python post_mix_to_x.py
       - name: Upload debug screenshots
