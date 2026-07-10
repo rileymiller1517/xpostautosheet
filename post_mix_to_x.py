@@ -668,9 +668,8 @@ def click_post_button(page, post_index):
             POST_BUTTON_SELECTORS,
         )
 
-
 def post_with_network_confirmation(page, post_index, click_timeout=25_000):
-    result = {"sent": None, "tweet_id": None}
+    result = {"sent": None, "tweet_id": None, "duplicate": False}
 
     def on_response(response):
         if "CreateTweet" not in response.url:
@@ -680,7 +679,17 @@ def post_with_network_confirmation(page, post_index, click_timeout=25_000):
         except Exception:
             return
         if isinstance(data, dict) and data.get("errors"):
-            dbg(f"  [NET-CONFIRM] CreateTweet errors: {data['errors']}")
+            errors = data["errors"]
+            dbg(f"  [NET-CONFIRM] CreateTweet errors: {errors}")
+            # code 187 == "Status is a duplicate": X is telling us this exact
+            # text is already posted on the account. That means the content
+            # we wanted live IS live — treat it as success, not failure, or
+            # we'll just spin retrying the same doomed text forever.
+            if any(e.get("code") == 187 for e in errors if isinstance(e, dict)):
+                dbg("  [NET-CONFIRM] Duplicate status — content is already posted, treating as SUCCESS.")
+                result["sent"] = True
+                result["duplicate"] = True
+                return
             result["sent"] = False
             return
         try:
@@ -690,6 +699,7 @@ def post_with_network_confirmation(page, post_index, click_timeout=25_000):
             result["tweet_id"] = tweet_id
         except (KeyError, TypeError):
             result["sent"] = False
+
 
     page.on("response", on_response)
     try:
