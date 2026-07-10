@@ -18,7 +18,7 @@ from playwright.sync_api import sync_playwright
 GDRIVE_CREDS_JSON   = os.environ.get("GDRIVE_CREDENTIALS_JSON", "")
 SHEET_CREDS_JSON    = os.environ.get("SHEET_CREDENTIALS_JSON", "") or GDRIVE_CREDS_JSON
 
-ACCOUNTS_SPREADSHEET_ID = os.environ.get("ACCOUNTS_SPREADSHEET_ID", "")
+ACCOUNTS_SPREADSHEET_ID = "1L7mbhs-o4FExphSRRFGfdIe5CuHBuHgQE1CLw3hnujQ"
 ACCOUNTS_SHEET_TAB      = os.environ.get("ACCOUNTS_SHEET_TAB", "Accounts")
 MASTER_SHEET_TAB        = os.environ.get("MASTER_SHEET_TAB", "Settings")
 
