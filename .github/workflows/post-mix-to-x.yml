@@ -1,55 +1,32 @@
 name: Post Mix (Images + Videos + Threads) to X — Sheet Driven
 on:
-  workflow_dispatch:
-    inputs:
-      accounts_spreadsheet_id:
-        description: "Master Accounts+Settings Google Sheet ID (overrides ACCOUNTS_SPREADSHEET_ID secret if set)"
-        required: false
-        default: ""
-      accounts_sheet_tab:
-        description: "Tab name for the accounts table"
-        required: false
-        default: "Accounts"
-      master_sheet_tab:
-        description: "Tab name for global default settings (key/value)"
-        required: false
-        default: "Settings"
-      run_budget_minutes:
-        description: "Minutes the script may run before stopping itself cleanly"
-        required: false
-        default: "355"
+  workflow_dispatch: {}
   schedule:
-    # Optional: uncomment / adjust to run automatically instead of only via manual dispatch.
-    # - cron: "0 */6 * * *"
-
+    - cron: "0 */6 * * *"   # runs every 6 hours — edit to whatever cadence you want
 jobs:
   post-mix:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    concurrency:
+      group: post-mix-to-x
+      cancel-in-progress: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install Python dependencies
         run: |
           pip install playwright gspread google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2
           playwright install --with-deps chromium
-
       - name: Run mixed poster (sheet-driven)
         env:
-          GDRIVE_CREDENTIALS_JSON:  ${{ secrets.GDRIVE_CREDENTIALS_JSON }}
-          SHEET_CREDENTIALS_JSON:   ${{ secrets.SHEET_CREDENTIALS_JSON }}
-          ACCOUNTS_SPREADSHEET_ID:  ${{ github.event.inputs.accounts_spreadsheet_id != '' && github.event.inputs.accounts_spreadsheet_id || secrets.ACCOUNTS_SPREADSHEET_ID }}
-          ACCOUNTS_SHEET_TAB:       ${{ github.event.inputs.accounts_sheet_tab || 'Accounts' }}
-          MASTER_SHEET_TAB:         ${{ github.event.inputs.master_sheet_tab || 'Settings' }}
-          RUN_BUDGET_MINUTES:       ${{ github.event.inputs.run_budget_minutes || '355' }}
+          GDRIVE_CREDENTIALS_JSON: ${{ secrets.GDRIVE_CREDENTIALS_JSON }}
+          SHEET_CREDENTIALS_JSON: ${{ secrets.SHEET_CREDENTIALS_JSON }}
+          ACCOUNTS_SPREADSHEET_ID: ${{ secrets.ACCOUNTS_SPREADSHEET_ID }}
         run: python post_mix_to_x.py
-
       - name: Upload debug screenshots
         if: always()
         uses: actions/upload-artifact@v4
